@@ -48,10 +48,10 @@ function login_form_nonce_field() {
 /**
  * Validate the nonce.
  *
- * If DUO Security 2FA is installed and activate, and this is the secondary auth by DUO,
+ * If DUO Security 2FA is installed and activated, and this is the 2FA auth by DUO,
  * skip nonce validation.
  *
- * @param null|WP_User|WP_Error $user WP_User if the user is authenticated. WP_Error or null otherwise.
+ * @param null|WP_User|WP_Error $user     WP_User if the user is authenticated. WP_Error or null otherwise.
  * @param string                $username Username or email address.
  * @param string                $password User password.
  * @return null|WP_User|WP_Error
