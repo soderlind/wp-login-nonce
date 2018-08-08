@@ -11,7 +11,7 @@
  * Plugin URI: https://github.com/soderlind/wp-login-nonce
  * GitHub Plugin URI: https://github.com/soderlind/wp-login-nonce
  * Description: Use a nonce to prevent Login Cross-Site Request Forgery (CSRF).
- * Version:     0.0.1
+ * Version:     0.0.2
  * Author:      Per Soderlind
  * Author URI:  https://soderlind.no
  * Text Domain: dss-login-nonce
@@ -29,8 +29,10 @@ function login_form_nonce_field() {
 }
 
 function login_form_nonce_field_validate( $user ) {
-	if ( ! isset( $_POST['login-security'] ) || ! wp_verify_nonce( $_POST['login-security'], 'login-nonce' ) ) {
-		$user = new \WP_Error( 'login-nonce', '<strong>ERROR</strong>: Invalid nonce' );
+	if ( ! isset( $_POST['sig_response'] ) ) { // If set, secondary auth by DUO
+		if ( ! isset( $_POST['login-security'] ) || ! wp_verify_nonce( $_POST['login-security'], 'Xlogin-nonce' ) ) {
+			$user = new \WP_Error( 'login-nonce', '<strong>ERROR</strong>: Invalid nonce' );
+		}
 	}
 	return $user;
 }
