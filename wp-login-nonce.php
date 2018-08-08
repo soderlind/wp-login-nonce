@@ -22,17 +22,20 @@
 namespace Soderlind\Admin\login;
 
 add_action( 'login_form', __NAMESPACE__ . '\login_form_nonce_field' );
-add_filter( 'authenticate', __NAMESPACE__ . '\login_form_nonce_field_validate', 99 );
+add_filter( 'authenticate', __NAMESPACE__ . '\login_form_nonce_field_validate', 10 );
 
 function login_form_nonce_field() {
 	wp_nonce_field( 'login-nonce', 'login-security' );
 }
 
 function login_form_nonce_field_validate( $user ) {
-	if ( ! isset( $_POST['sig_response'] ) ) { // If set, secondary auth by DUO
-		if ( ! isset( $_POST['login-security'] ) || ! wp_verify_nonce( $_POST['login-security'], 'Xlogin-nonce' ) ) {
-			$user = new \WP_Error( 'login-nonce', '<strong>ERROR</strong>: Invalid nonce' );
-		}
+	// Don't validate nonce when doing secondary auth by DUO
+	if ( function_exists( 'duo_auth_enabled' ) && duo_auth_enabled() && isset( $_POST['sig_response'] ) ) {
+		return $user;
+	}
+	if ( ! isset( $_POST['login-security'] ) && ! wp_verify_nonce( $_POST['login-security'], 'login-nonce' ) ) {
+		// $user = new \WP_Error( 'login-nonce', '<strong>ERROR</strong>: Invalid nonce' );
+		$user = null; // = "ERROR: Invalid username, email address or incorrect password."
 	}
 	return $user;
 }
