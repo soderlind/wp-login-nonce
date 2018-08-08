@@ -22,20 +22,37 @@
 namespace Soderlind\Admin\login;
 
 add_action( 'login_form', __NAMESPACE__ . '\login_form_nonce_field' );
-add_filter( 'authenticate', __NAMESPACE__ . '\login_form_nonce_field_validate', 10 );
+add_filter( 'authenticate', __NAMESPACE__ . '\login_form_nonce_field_validate', 99, 3 );
+add_filter(
+	'nonce_user_logged_out', function ( $uid = 0, $action = '' ) {
+		if ( $action == 'loginsecurity' ) {
+			return 0;
+		}
+
+		return $uid;
+	}, 100, 2
+);
 
 function login_form_nonce_field() {
-	wp_nonce_field( 'login-nonce', 'login-security' );
+	$token = bin2hex( openssl_random_pseudo_bytes( 16 ) );
+	setcookie( 'csrftoken', $token, time() + DAY_IN_SECONDS );
+
+	wp_nonce_field( 'nonceid_' . $token, 'loginsecurity' );
 }
 
-function login_form_nonce_field_validate( $user ) {
+function login_form_nonce_field_validate( $user, $username, $password ) {
 	// Don't validate nonce when doing secondary auth by DUO
 	if ( function_exists( 'duo_auth_enabled' ) && duo_auth_enabled() && isset( $_POST['sig_response'] ) ) {
 		return $user;
 	}
-	if ( ! isset( $_POST['login-security'] ) && ! wp_verify_nonce( $_POST['login-security'], 'login-nonce' ) ) {
-		// $user = new \WP_Error( 'login-nonce', '<strong>ERROR</strong>: Invalid nonce' );
-		$user = null; // = "ERROR: Invalid username, email address or incorrect password."
+
+	if ( ! isset( $_REQUEST['loginsecurity'], $_COOKIE['csrftoken'] ) ) {
+		return $user;
+	}
+	$nonce = $_REQUEST['loginsecurity'];
+	$token = $_COOKIE['csrftoken'];
+	if ( ! wp_verify_nonce( $nonce, 'nonceid_' . $token ) ) {
+		return new \WP_Error( 'login-nonce', '<strong>ERROR</strong>: Invalid nonce' );
 	}
 	return $user;
 }
