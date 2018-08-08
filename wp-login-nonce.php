@@ -7,7 +7,7 @@
  * @license     GPL-2.0+
  *
  * @wordpress-plugin
- * Plugin Name: Add a nonce to WP Login form
+ * Plugin Name: Add a nonce to the WP Login form
  * Plugin URI: https://github.com/soderlind/wp-login-nonce
  * GitHub Plugin URI: https://github.com/soderlind/wp-login-nonce
  * Description: Use a nonce to prevent Login Cross-Site Request Forgery (CSRF).
